@@ -1,0 +1,11 @@
+# Python cache and environment
+venv/
+__pycache__/
+*.pyc
+
+# IDE/System
+.vscode/
+.DS_Store
+
+# Critical: DO NOT UPLOAD DATA
+chroma_db/
