@@ -28,21 +28,43 @@ async def analyze_contract(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="File must be a PDF")
     
-    text_content = extract_text_from_pdf(file)
-    if not text_content:
-        raise HTTPException(status_code=400, detail="Could not read text")
+    # 1. Extract Pages (Returns [{'page':1, 'text':'...'}])
+    pages_data = extract_text_from_pdf(file) 
+    
+    if not pages_data:
+        raise HTTPException(status_code=400, detail="Could not read text from PDF")
 
+    # 2. Combine for Vector DB (It needs one big string)
+    full_text = "\n".join([p['text'] for p in pages_data])
+
+    # 3. Vector Store (Index the file)
     try:
-        process_text_for_search(text_content, file.filename)
+        process_text_for_search(full_text, file.filename)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Vector DB Error: {str(e)}")
+        print(f"Vector DB Warning: {e}") 
 
+    # 4. Retrieval & Analysis
     query = "termination fees, penalties, data privacy, non-compete, indemnification, security deposit return"
     relevant_chunks = search_contract(query, file.filename, n_results=5)
     ai_result = analyze_clauses_with_ai(relevant_chunks)
 
-    return { "filename": file.filename, "analysis": ai_result }
+    # 5. PAGE NUMBER MAPPING (The Logic Fix)
+    # We search the original pages to find where the bad clause lives
+    for flag in ai_result.get("red_flags", []):
+        quote = flag.get("clause", "")
+        # Take the first 30 chars of the quote to search
+        search_snippet = quote[:30] 
+        
+        flag["page"] = 1 # Default
+        for page in pages_data:
+            if search_snippet in page['text']:
+                flag["page"] = page['page']
+                break
 
+    return {
+        "filename": file.filename,
+        "analysis": ai_result 
+    }
 @router.post("/negotiate")
 async def negotiate_clause(request: NegotiationRequest):
     try:

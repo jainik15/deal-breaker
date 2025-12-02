@@ -4,8 +4,8 @@ import axios from 'axios';
 import clsx from 'clsx';
 import ChatSection from './ChatSection';
 
-export default function ResultsDashboard({ result, onReset }) {
-  // --- SAFETY CHECK: Prevents the white screen crash ---
+export default function ResultsDashboard({ result, onReset, onViewSource }) { // <--- Added onViewSource prop
+  // --- SAFETY CHECK ---
   if (!result || !result.analysis) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -118,9 +118,27 @@ export default function ResultsDashboard({ result, onReset }) {
                       <span className={clsx("text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider", flag.severity === "High" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700")}>{flag.severity} Risk</span>
                       <p className="font-semibold text-slate-800 text-lg mt-1 mb-2">"{flag.risk}"</p>
                     </div>
-                    <button onClick={() => handleFixIt(flag, index)} className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-sm font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-all"><Wrench className="w-4 h-4" /> Fix</button>
+                    
+                    {/* BUTTON GROUP: View Source + Fix */}
+                    <div className="flex gap-2">
+                        {/* 1. View Source Button */}
+                        <button 
+                          onClick={() => onViewSource(flag.page)}
+                          className="flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-2 rounded-lg hover:bg-slate-200 transition-all border border-slate-200"
+                        >
+                          <FileText className="w-3 h-3" /> Page {flag.page}
+                        </button>
+
+                        {/* 2. Fix Button */}
+                        <button 
+                          onClick={() => handleFixIt(flag, index)} 
+                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-2 rounded-lg hover:bg-blue-100 transition-all"
+                        >
+                          <Wrench className="w-3 h-3" /> Fix
+                        </button>
+                    </div>
                   </div>
-                  <p className="text-slate-500 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 italic">Original Clause: "{flag.clause}"</p>
+                  <p className="text-slate-500 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 italic mt-2">Original Clause: "{flag.clause}"</p>
                   
                   {/* Single Email Modal */}
                   {negotiating === index && !bulkNegotiating && (

@@ -3,7 +3,7 @@ import { UploadCloud, FileText, AlertCircle, CheckCircle, Loader2, Link, File } 
 import axios from 'axios';
 import clsx from 'clsx';
 
-export default function FileUpload({ onAnalysisComplete }) {
+export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   const [activeTab, setActiveTab] = useState('pdf'); // 'pdf' or 'url'
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
@@ -34,6 +34,11 @@ export default function FileUpload({ onAnalysisComplete }) {
 
   const handlePdfUpload = async () => {
     if (!file) return;
+    
+    // --- CRITICAL UPDATE: Pass file to parent for PDF Viewer ---
+    if (onFileSelect) onFileSelect(file);
+    // ----------------------------------------------------------
+
     setLoading(true); setError(null);
     const formData = new FormData();
     formData.append("file", file);
@@ -48,6 +53,10 @@ export default function FileUpload({ onAnalysisComplete }) {
   // --- URL LOGIC ---
   const handleUrlUpload = async () => {
     if (!url) return;
+    
+    // Clear the current file in parent because URLs don't have PDFs to show
+    if (onFileSelect) onFileSelect(null);
+
     setLoading(true); setError(null);
 
     try {

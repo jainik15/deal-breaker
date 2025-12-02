@@ -1,21 +1,25 @@
 import pypdf
 from fastapi import UploadFile
 
-def extract_text_from_pdf(file_file: UploadFile) -> str:
+def extract_text_from_pdf(file_file: UploadFile):
     """
-    Reads a PDF file stream and returns the full text content.
+    Reads a PDF and returns a list of dictionaries: [{'page': 1, 'text': '...'}, ...]
     """
+    pages_data = []
     try:
-        # pypdf needs a real file-like object, so we read the stream
+        # Reset file cursor to the beginning just in case
+        file_file.file.seek(0)
+        
         pdf_reader = pypdf.PdfReader(file_file.file)
         
-        full_text = ""
-        for page in pdf_reader.pages:
+        for i, page in enumerate(pdf_reader.pages):
             text = page.extract_text()
             if text:
-                full_text += text + "\n"
+                # Clean up text slightly to match easier
+                clean_text = text.replace('\n', ' ').replace('  ', ' ')
+                pages_data.append({"page": i + 1, "text": clean_text})
                 
-        return full_text
+        return pages_data
     except Exception as e:
         print(f"Error reading PDF: {e}")
-        return ""
+        return []
