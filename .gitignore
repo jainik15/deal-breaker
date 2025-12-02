@@ -1,0 +1,16 @@
+# --- Backend Ignored Files ---
+backend/venv/
+backend/__pycache__/
+backend/.env
+backend/*.pyc
+backend/chroma_db/
+
+# --- Frontend Ignored Files ---
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.DS_Store
+
+# --- System Files ---
+.vscode/
+.idea/
