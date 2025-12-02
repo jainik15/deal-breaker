@@ -75,3 +75,59 @@ def analyze_clauses_with_ai(retrieved_chunks: list):
             "summary": "Error analyzing contract.", 
             "red_flags": []
         }
+
+def generate_negotiation_email(clause: str, risk: str):
+    """
+    Generates a polite but firm email to negotiate a specific bad clause.
+    """
+    system_prompt = """
+    You are a professional legal negotiator. Your goal is to write a polite, professional, 
+    and concise email to a landlord or employer requesting an amendment to a contract.
+    
+    Guidelines:
+    - Tone: Respectful, cooperative, but firm on the issue.
+    - Context: The user is worried about a specific clause.
+    - Output: Just the body of the email. Keep it under 200 words.
+    """
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", f"Please draft an email regarding this clause: '{clause}'. \nMy concern is: {risk}")
+    ])
+    
+    chain = prompt | llm
+    response = chain.invoke({})
+    
+    return response.content
+
+def generate_bulk_negotiation_email(red_flags: list):
+    """
+    Generates one master email covering ALL identified risks.
+    """
+    # Convert list of dicts to a readable string bulleted list
+    issues_text = ""
+    for flag in red_flags:
+        issues_text += f"- Clause: '{flag['clause']}'\n  Concern: {flag['risk']}\n\n"
+
+    system_prompt = """
+    You are a senior legal counsel acting on behalf of a client. 
+    Your goal is to draft a formal, comprehensive negotiation email to a counterparty (Landlord/Employer).
+    
+    Instructions:
+    1. Tone: Professional, firm, yet constructive. Use legal terminology where appropriate but keep it clear.
+    2. Structure: 
+       - Opening: Acknowledge receipt of the contract.
+       - Body: systematically address the concerns listed below. Group them logically if possible.
+       - Closing: Request a revised version of the agreement.
+    3. Constraint: Do not be aggressive. The goal is to sign the deal, but with better terms.
+    """
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", f"Please draft a comprehensive negotiation email addressing these specific issues:\n\n{issues_text}")
+    ])
+    
+    chain = prompt | llm
+    response = chain.invoke({})
+    
+    return response.content
