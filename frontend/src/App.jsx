@@ -17,7 +17,7 @@ function App() {
       <div className="text-center mb-8">
         <div className="flex justify-center items-center gap-2 mb-2">
           <ShieldAlert className="w-8 h-8 text-red-600" />
-          <h1 className="text-3xl font-extrabold text-slate-900">
+          <h1 className="text-5xl font-extrabold text-slate-900">
             Deal <span className="text-red-600">Breaker</span>
           </h1>
         </div>
