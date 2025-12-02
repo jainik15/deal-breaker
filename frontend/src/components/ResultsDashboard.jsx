@@ -2,24 +2,19 @@ import React, { useState } from 'react';
 import { AlertTriangle, Shield, FileText, Wrench, X, Copy, Loader2, Mail, Download } from 'lucide-react';
 import axios from 'axios';
 import clsx from 'clsx';
+import ChatSection from './ChatSection';
+import { generatePDFReport } from '../utils/pdfGenerator'; 
 
 export default function ResultsDashboard({ result, onReset, onViewSource }) {
   // --- SAFETY CHECK (Prevents the crash if data is missing) ---
-  // Updated Centering for Split-Screen
-  // Updated Centering Logic (Uses Tailwind's absolute positioning for guaranteed center)
   if (!result || !result.analysis) {
-      return (
-        // This container MUST have h-full and relative positioning
-        <div className="flex flex-col items-center justify-center py-20 h-full w-full relative">
-          
-          {/* The actual loading box that centers itself */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-            <p className="text-slate-500 mt-4 text-center">Loading analysis...</p>
-            <button onClick={onReset} className="mt-4 text-sm text-blue-600 hover:underline">Cancel</button>
-          </div>
-        </div>
-      );
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+        <p className="text-slate-500 mt-4">Loading analysis...</p>
+        <button onClick={onReset} className="mt-4 text-sm text-blue-600 hover:underline">Cancel</button>
+      </div>
+    );
   }
 
   const { analysis, filename } = result;
@@ -55,15 +50,12 @@ export default function ResultsDashboard({ result, onReset, onViewSource }) {
     } catch (err) { setEmailDraft("Error generating master email."); } 
     finally { setLoading(false); }
   };
-
+  
+  // --- FINAL EXPORT FUNCTION ---
   const handleExport = () => {
-    // NOTE: This relies on you finishing the pdfGenerator.js utility
-    if (typeof generatePDFReport !== 'undefined') {
-      generatePDFReport(analysis, filename);
-    } else {
-      alert("PDF Export feature is not fully implemented yet. Please check utils/pdfGenerator.js.");
-    }
+    generatePDFReport(analysis, filename);
   };
+  // -----------------------------
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24">
@@ -154,6 +146,9 @@ export default function ResultsDashboard({ result, onReset, onViewSource }) {
           ))}
         </div>
       </div>
+
+      {/* Floating Chat is rendered by App.jsx, but we rely on its prop passing */}
+      <ChatSection filename={filename} />
 
       {/* This is the final reset button at the bottom */}
       <div className="text-center pt-10">
