@@ -131,3 +131,47 @@ def generate_bulk_negotiation_email(red_flags: list):
     response = chain.invoke({})
     
     return response.content
+
+def ask_ai_lawyer(question: str, context_chunks: list, chat_history: list):
+    """
+    Answers a user question using contract context + conversation history.
+    """
+    context_text = "\n\n".join(context_chunks)
+    
+    # Format the chat history into a readable string
+    history_text = ""
+    for msg in chat_history:
+        role = "User" if msg['role'] == 'user' else "AI"
+        history_text += f"{role}: {msg['content']}\n"
+    
+    system_prompt = """
+    You are a smart, friendly, and helpful legal assistant.
+    
+    Your Goals:
+    1. Answer the user's question based on the 'Contract Context' provided below.
+    2. If the 'Contract Context' is IRRELEVANT to the question (e.g., user asks about 'drugs' but the text is about 'utilities'), IGNORE the context and rely on your general legal knowledge.
+    3. If the contract is SILENT on a topic (e.g., it doesn't mention pets or drugs), clearly state: "The contract does not specifically address [topic]." Then, provide general legal context (e.g., "However, illegal activities are generally prohibited by state law regardless of the lease").
+    
+    Tone Guidelines:
+    - Be conversational, not robotic. 
+    - Do not repeatedly say "As previously mentioned."
+    - If the user asks for an email draft, provide it immediately.
+    """
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", f"""
+        Conversation History:
+        {history_text}
+        
+        Contract Context (Use only if relevant):
+        {context_text}
+        
+        Current Question: {question}
+        """)
+    ])
+    
+    chain = prompt | llm
+    response = chain.invoke({})
+    
+    return response.content
