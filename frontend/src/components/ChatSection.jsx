@@ -46,8 +46,8 @@ export default function ChatSection({ filename }) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end space-y-4">
-      {isOpen && (
+    <div className="fixed bottom-6 right-10 z-50 flex flex-col items-end space-y-4">
+        {isOpen && (
         // --- UPDATED: Huge Dimensions + shadow-2xl ---
         <div className="w-[500px] h-[700px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
           

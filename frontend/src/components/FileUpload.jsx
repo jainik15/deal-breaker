@@ -35,9 +35,8 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   const handlePdfUpload = async () => {
     if (!file) return;
     
-    // --- CRITICAL UPDATE: Pass file to parent for PDF Viewer ---
+    // Pass file object to parent for PDF Viewer
     if (onFileSelect) onFileSelect(file);
-    // ----------------------------------------------------------
 
     setLoading(true); setError(null);
     const formData = new FormData();
@@ -54,8 +53,8 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   const handleUrlUpload = async () => {
     if (!url) return;
     
-    // Clear the current file in parent because URLs don't have PDFs to show
-    if (onFileSelect) onFileSelect(null);
+    // Pass a placeholder file type to clear the PDF Viewer
+    if (onFileSelect) onFileSelect({ name: url, type: 'web' });
 
     setLoading(true); setError(null);
 
@@ -99,7 +98,7 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
             </div>
           </div>
           {file && !loading && (
-            <button onClick={handlePdfUpload} className="mt-6 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">Run Analysis <CheckCircle className="w-5 h-5" /></button>
+            <button onClick={handlePdfUpload} className="mt-6 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"><CheckCircle className="w-5 h-5" /> Run Analysis</button>
           )}
         </>
       )}
