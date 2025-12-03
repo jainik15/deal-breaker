@@ -2,23 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.endpoints import router as api_router
-from app.services.vector_store import reset_collection # 1. NEW IMPORT
+from app.services.vector_store import reset_collection 
 
 def get_application():
     _app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
-    # --- STARTUP HOOK: RUN ONCE WHEN DEPLOYED ---
-    @_app.on_event("startup")
-    async def startup_event():
-        # 2. Reset the DB every time the server starts to prevent old data/chunk conflicts
-        reset_collection()
-    # ---------------------------------------------
-
-    # --- CORS MIDDLEWARE ---
-    # 3. Changed to "*" to allow connections from the live Frontend URL
+    # --- REMOVED STARTUP HOOK: Database Reset is now optional ---
+    # To run reset locally, manually call reset_collection() 
+    
+    # --- CORS MIDDLEWARE: RESTRICTED TO LOCALHOST ---
+    # The React Frontend runs on 5173, the local dev port
     _app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"], 
+        allow_origins=["http://localhost:5173"], 
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
