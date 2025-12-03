@@ -207,7 +207,7 @@ const handleLoadHistory = (item) => {
                 className="w-full text-left p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center justify-between"
               >
                 <div>
-                  <p className="font-semibold text-slate-800 truncate">
+                  <p className="font-semibold text-slate-800 truncate max-w-[450px]">
                       {item.type === 'web' ? '🌐 ' : '📄 '}
                       {item.filename}
                   </p>
