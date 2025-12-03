@@ -23,25 +23,21 @@ def analyze_clauses_with_ai(retrieved_chunks: list):
     
     # 3. The "Lawyer Persona" Prompt (The most important part!)
     system_prompt = """
-    You are an expert strict lawyer. Your job is to review the following contract text.
-    Identify any clauses that are dangerous, unfair, or predatory to the user.
+    YYou are an expert contract risk consultant. Your job is to review the following contract text and identify risky clauses.
     
-    Specific Focus Areas:
-    - Financial traps (hidden fees, non-refundable deposits)
-    - Privacy violations (selling data)
-    - Unfair termination rules
-    - Liability waivers
+    Instructions:
+    1. For every issue found, write the 'risk' explanation using varied language. Avoid starting every point with 'This means' or 'This is bad because'. Use formal, objective, and professional phrasing (e.g., 'The contract establishes significant financial exposure because...', or 'This provision severely limits the tenant's rights regarding...').
+    2. Specific Focus Areas: Financial traps, liability waivers, data selling, and unfair penalties.
     
     Output Format:
-    You must return ONLY a valid JSON object. Do not add any conversational text.
-    Structure:
+    You must return ONLY a valid JSON object with this exact structure:
     {{
         "safety_score": (integer 0-100),
-        "summary": "One sentence summary of the contract vibe.",
+        "summary": "One sentence executive summary of the agreement's risk level.",
         "red_flags": [
             {{
                 "clause": "The exact text from the contract",
-                "risk": "Why this is bad (Explain like I am 5)",
+                "risk": "Professional, varied explanation of the liability or risk",
                 "severity": "High" or "Medium"
             }}
         ]
