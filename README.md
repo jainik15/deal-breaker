@@ -90,7 +90,8 @@ start cmd /k "cd frontend && npm run dev"
 ---
 
 ## **🧩 System Architecture**
-```
+
+```mermaid
 graph LR
     A[User Uploads PDF/URL] --> B(FastAPI Server)
     B --> C{PDF/Web Processor}
@@ -107,4 +108,5 @@ graph LR
 ## **🛡️ License**
 
 This project is for educational purposes only. It does not constitute real legal advice.
+
 
