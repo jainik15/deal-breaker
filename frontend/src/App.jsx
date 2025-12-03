@@ -4,33 +4,41 @@ import ResultsDashboard from './components/ResultsDashboard';
 import PdfViewer from './components/PdfViewer';
 import ChatSection from './components/ChatSection';
 import { ShieldAlert } from 'lucide-react';
+import clsx from 'clsx'; // Importing clsx for conditional class joining
 
 function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [currentFile, setCurrentFile] = useState(null); // Stores the actual PDF File object for the Viewer
-  const [pdfPage, setPdfPage] = useState(1); // Tracks which page the viewer shows
+  const [currentFile, setCurrentFile] = useState(null); 
+  const [pdfPage, setPdfPage] = useState(1); 
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 pr-48"> {/* pr-48 pushes content away from the floating chat */}
+    // REMOVED PR-48: Outer container is now evenly padded, allowing true centering
+    <div className="min-h-screen bg-slate-50 py-8 px-4"> 
       
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex justify-center items-center gap-2 mb-2">
           <ShieldAlert className="w-8 h-8 text-red-600" />
-          <h1 className="text-5xl font-extrabold text-slate-900">
+          <h1 className="text-6xl font-extrabold text-slate-900">
             Deal <span className="text-red-600">Breaker</span>
           </h1>
         </div>
         <p className="text-slate-500">AI Contract Analyst</p>
       </div>
 
-      <div className="max-w-[80rem] mx-auto"> {/* Wider container for split screen */}
+      {/* Main Content Container */}
+      <div className={clsx(
+          "max-w-[80rem] mx-auto transition-all duration-300",
+          // ADDED PADDING: Ensures main content clears the floating chat window
+          analysisResult ? "pr-24" : "pr-0" 
+      )}> 
+        
         {!analysisResult ? (
           // --- UPLOAD VIEW ---
           <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
             <FileUpload 
               onAnalysisComplete={(data) => setAnalysisResult(data)} 
-              onFileSelect={(file) => setCurrentFile(file)} // Capture file object for PDF Viewer
+              onFileSelect={(file) => setCurrentFile(file)}
             />
           </div>
         ) : (
@@ -43,11 +51,11 @@ function App() {
               <ResultsDashboard 
                 result={analysisResult} 
                 onReset={() => setAnalysisResult(null)}
-                onViewSource={(page) => setPdfPage(page)} // When clicked, update PDF page
+                onViewSource={(page) => setPdfPage(page)}
               />
             </div>
 
-            {/* RIGHT: PDF Viewer (Only renders if currentFile exists) */}
+            {/* RIGHT: PDF Viewer */}
             {currentFile && currentFile.name && currentFile.type === "application/pdf" ? (
                <div className="h-full flex flex-col bg-slate-200 rounded-2xl overflow-hidden border border-slate-300">
                  <div className="bg-white p-3 border-b border-slate-300 font-bold text-slate-700 flex justify-between items-center shadow-sm z-10">
@@ -67,8 +75,8 @@ function App() {
         )}
       </div>
 
-      {/* --- FLOATING CHAT WIDGET: ALWAYS RENDERED (FIXED POSITION) --- */}
-      <ChatSection filename={analysisResult?.filename || 'document'} />
+      {/* FLOATING CHAT WIDGET: Renders based on whether a file has been selected */}
+      <ChatSection filename={analysisResult?.filename || currentFile?.name || 'document'} />
 
     </div>
   );
