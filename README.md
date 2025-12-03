@@ -71,11 +71,11 @@ pip install -r requirements.txt
 
 # Create .env file (Contains your API Key)
 echo "GROQ_API_KEY=your_actual_key_here" > .env
-2. Running the Project (Local Execution)
+```
+### **2. Running the Project (Local Execution)**
 The project is configured to start both servers in isolated sessions using a single script:
 
-Bash
-
+```
 # Double-click the start.bat file in the main project folder.
 
 # --- Equivalent Manual Commands ---
@@ -90,7 +90,6 @@ start cmd /k "cd frontend && npm run dev"
 ---
 
 ## **🧩 System Architecture**
-Code snippet
 ```
 graph LR
     A[User Uploads PDF/URL] --> B(FastAPI Server)
@@ -108,3 +107,4 @@ graph LR
 ## **🛡️ License**
 
 This project is for educational purposes only. It does not constitute real legal advice.
+
