@@ -1,15 +1,66 @@
-import React, { useState, useCallback } from 'react';
-import { UploadCloud, FileText, AlertCircle, CheckCircle, Loader2, Link, File } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { UploadCloud, FileText, AlertCircle, CheckCircle, Loader2, Link, File, Clock, Trash2, ChevronRight } from 'lucide-react';
 import axios from 'axios';
 import clsx from 'clsx';
+import { getHistory, addAnalysisToHistory } from '../utils/historyService'; // <--- NEW IMPORT
 
 export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
-  const [activeTab, setActiveTab] = useState('pdf'); // 'pdf' or 'url'
+  const [activeTab, setActiveTab] = useState('pdf'); 
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [history, setHistory] = useState([]); // <--- NEW STATE
+
+  // Load history on component mount
+  useEffect(() => {
+    setHistory(getHistory());
+  }, []);
+
+  // Helper to format date
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+  };
+
+  // Function to load a historical analysis
+  // Function to load a historical analysis
+const handleLoadHistory = (item) => {
+  // 1. Prepare file object for PDF Viewer
+  // If the file is a PDF, we must pass null to currentFile to prevent the viewer from failing.
+  const fileObject = { 
+      name: item.filename, 
+      type: item.type 
+    };
+    
+    if (onFileSelect) {
+        // If it's a PDF, we pass a temporary null/web placeholder to clear the viewer.
+        if (item.type === 'application/pdf') {
+            onFileSelect({ name: item.filename, type: 'web-history' }); 
+        } else {
+            // If it was a URL, we pass the URL object.
+            onFileSelect(fileObject);
+        }
+    }
+    
+    // 2. Load the analysis data
+    if (onAnalysisComplete) onAnalysisComplete({ 
+        analysis: item.analysis,
+        filename: item.filename
+    });
+  };
+
+  const handleClearHistory = () => {
+      // Clear history from localStorage and component state
+      localStorage.removeItem('dealbreaker_scan_history');
+      setHistory([]);
+  };
+
 
   // --- PDF LOGIC ---
   const handleDrag = useCallback((e) => {
@@ -35,7 +86,6 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   const handlePdfUpload = async () => {
     if (!file) return;
     
-    // Pass file object to parent for PDF Viewer
     if (onFileSelect) onFileSelect(file);
 
     setLoading(true); setError(null);
@@ -45,6 +95,11 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/v1/analyze", formData, { headers: { "Content-Type": "multipart/form-data" } });
       onAnalysisComplete(response.data);
+      
+      // <--- HISTORY SAVE --->
+      addAnalysisToHistory(response.data, file);
+      setHistory(getHistory()); // Refresh history list
+      
     } catch (err) { setError("Analysis failed. Backend error."); } 
     finally { setLoading(false); }
   };
@@ -53,14 +108,19 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   const handleUrlUpload = async () => {
     if (!url) return;
     
-    // Pass a placeholder file type to clear the PDF Viewer
-    if (onFileSelect) onFileSelect({ name: url, type: 'web' });
+    const urlFilePlaceholder = { name: url, type: 'web' };
+    if (onFileSelect) onFileSelect(urlFilePlaceholder);
 
     setLoading(true); setError(null);
 
     try {
       const response = await axios.post("http://127.0.0.1:8000/api/v1/analyze-url", { url: url });
       onAnalysisComplete(response.data);
+      
+      // <--- HISTORY SAVE --->
+      addAnalysisToHistory(response.data, urlFilePlaceholder);
+      setHistory(getHistory()); // Refresh history list
+      
     } catch (err) { setError("Failed to scrape URL. Website might be blocking bots."); } 
     finally { setLoading(false); }
   };
@@ -68,7 +128,7 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
   return (
     <div className="w-full max-w-xl mx-auto">
       
-      {/* TABS */}
+      {/* TABS (No Change) */}
       <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
         <button 
           onClick={() => setActiveTab('pdf')}
@@ -84,7 +144,7 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
         </button>
       </div>
 
-      {/* PDF VIEW */}
+      {/* PDF VIEW (Restored and Correct) */}
       {activeTab === 'pdf' && (
         <>
           <div className={clsx("relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-2xl transition-all duration-200 cursor-pointer", dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100", error && "border-red-500 bg-red-50")} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>
@@ -103,7 +163,7 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
         </>
       )}
 
-      {/* URL VIEW */}
+      {/* URL VIEW (Restored and Correct) */}
       {activeTab === 'url' && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <label className="block text-sm font-bold text-slate-700 mb-2">Website Link</label>
@@ -125,6 +185,42 @@ export default function FileUpload({ onAnalysisComplete, onFileSelect }) {
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> Scan Website</>}
           </button>
+        </div>
+      )}
+
+      {/* RECENT SCANS HISTORY (NEW UI SECTION) */}
+      {history.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-slate-200">
+          <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-bold text-slate-700 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-slate-500" /> Recent Scans
+              </h4>
+              <button onClick={handleClearHistory} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
+                  <Trash2 className="w-3 h-3" /> Clear History
+              </button>
+          </div>
+          <div className="space-y-3">
+            {history.map(item => (
+              <button 
+                key={item.id} 
+                onClick={() => handleLoadHistory(item)}
+                className="w-full text-left p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center justify-between"
+              >
+                <div>
+                  <p className="font-semibold text-slate-800 truncate">
+                      {item.type === 'web' ? '🌐 ' : '📄 '}
+                      {item.filename}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                      Analyzed: {formatDate(item.timestamp)}
+                  </p>
+                </div>
+                <div className="text-sm font-bold text-blue-600 shrink-0 flex items-center">
+                    Load <ChevronRight className="w-4 h-4 inline-block ml-1" />
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

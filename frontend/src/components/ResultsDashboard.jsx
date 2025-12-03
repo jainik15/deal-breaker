@@ -80,7 +80,9 @@ export default function ResultsDashboard({ result, onReset, onViewSource }) {
         <div className="md:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-lg flex flex-col justify-center">
           <div className="flex items-center gap-2 mb-3 text-slate-400 text-xs font-bold uppercase tracking-wider">
             <FileText className="w-4 h-4" />
-            {filename}
+            <span className="font-medium text-sm max-w-[80%] truncate">
+              {filename}
+            </span>
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">Executive Summary</h2>
           <p className="text-slate-600 leading-relaxed text-lg">{summary}</p>
@@ -183,10 +185,11 @@ export default function ResultsDashboard({ result, onReset, onViewSource }) {
       {/* Floating Chat is rendered by App.jsx, but we rely on its prop passing */}
 
       {/* This is the final reset button at the bottom */}
-      <div className="text-center pt-10">
+      <div className="text-center pt-20">
         <button onClick={onReset} className="text-slate-400 hover:text-slate-600 font-medium text-sm transition-colors flex items-center justify-center gap-1 mx-auto">
-          Analyze another document
+          <h3>Analyze another document </h3>
         </button>
+
       </div>
     </div>
   );
