@@ -4,16 +4,18 @@ import ResultsDashboard from './components/ResultsDashboard';
 import PdfViewer from './components/PdfViewer';
 import ChatSection from './components/ChatSection';
 import { ShieldAlert } from 'lucide-react';
-import clsx from 'clsx'; // Importing clsx for conditional class joining
+import clsx from 'clsx'; // Ensure clsx is imported for conditional classes
 
 function App() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [currentFile, setCurrentFile] = useState(null); 
   const [pdfPage, setPdfPage] = useState(1); 
 
+  // Determine if the current content is a PDF (to show the viewer and split screen)
+  const isPdf = currentFile && currentFile.type === "application/pdf";
+
   return (
-    // REMOVED PR-48: Outer container is now evenly padded, allowing true centering
-    <div className="min-h-screen bg-slate-50 py-8 px-4"> 
+    <div className="min-h-screen bg-slate-50 py-8 px-4 pr-48 relative overflow-x-hidden">
       
       {/* Header */}
       <div className="text-center mb-8">
@@ -26,13 +28,7 @@ function App() {
         <p className="text-slate-500">AI Contract Analyst</p>
       </div>
 
-      {/* Main Content Container */}
-      <div className={clsx(
-          "max-w-[80rem] mx-auto transition-all duration-300",
-          // ADDED PADDING: Ensures main content clears the floating chat window
-          analysisResult ? "pr-24" : "pr-0" 
-      )}> 
-        
+      <div className="max-w-[80rem] mx-auto"> 
         {!analysisResult ? (
           // --- UPLOAD VIEW ---
           <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
@@ -43,11 +39,21 @@ function App() {
           </div>
         ) : (
           
-          // --- SPLIT SCREEN VIEW (Result + PDF) ---
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[850px]">
+          /* SPLIT SCREEN VIEW (This container now manages the conditional layout) */
+          <div 
+            className={clsx(
+                "grid grid-cols-1 gap-6 h-[850px]",
+                isPdf ? "lg:grid-cols-2" : "lg:grid-cols-1" // Use 2 columns for PDF, 1 for URL
+            )}
+          >
             
-            {/* LEFT: Dashboard */}
-            <div className="overflow-y-auto h-full pr-2 pb-20">
+            {/* LEFT SIDE: Dashboard (This always exists and takes 2 columns for URL mode) */}
+            <div 
+              className={clsx(
+                  "overflow-y-auto h-full pr-2 pb-20",
+                  isPdf ? "lg:col-span-1" : "lg:col-span-2" // Dashboard spans both columns if no PDF viewer
+              )}
+            >
               <ResultsDashboard 
                 result={analysisResult} 
                 onReset={() => setAnalysisResult(null)}
@@ -55,27 +61,23 @@ function App() {
               />
             </div>
 
-            {/* RIGHT: PDF Viewer */}
-            {currentFile && currentFile.name && currentFile.type === "application/pdf" ? (
-               <div className="h-full flex flex-col bg-slate-200 rounded-2xl overflow-hidden border border-slate-300">
-                 <div className="bg-white p-3 border-b border-slate-300 font-bold text-slate-700 flex justify-between items-center shadow-sm z-10">
+            {/* RIGHT SIDE: PDF Viewer (Conditional Render) */}
+            {isPdf && (
+                <div className="h-full flex flex-col bg-slate-200 rounded-2xl overflow-hidden border border-slate-300 lg:col-span-1">
+                  <div className="bg-white p-3 border-b border-slate-300 font-bold text-slate-700 flex justify-between items-center shadow-sm z-10">
                     <span className="text-sm">Source Document</span>
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-mono">Page {pdfPage}</span>
-                 </div>
-                 <div className="flex-1 overflow-hidden relative">
+                  </div>
+                  <div className="flex-1 overflow-hidden relative">
                     <PdfViewer file={currentFile} activePage={pdfPage} />
-                 </div>
-               </div>
-            ) : (
-              <div className="h-full bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200">
-                {currentFile && currentFile.type === 'web' ? 'PDF Preview not available for URLs' : 'Upload PDF to view source'}
-              </div>
+                  </div>
+                </div>
             )}
           </div>
         )}
       </div>
 
-      {/* FLOATING CHAT WIDGET: Renders based on whether a file has been selected */}
+      {/* FLOATING CHAT WIDGET: ALWAYS RENDERED */}
       <ChatSection filename={analysisResult?.filename || currentFile?.name || 'document'} />
 
     </div>

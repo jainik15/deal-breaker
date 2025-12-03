@@ -82,7 +82,7 @@ export default function ResultsDashboard({ result, onReset, onViewSource }) {
             <FileText className="w-4 h-4" />
             {filename}
           </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2">Executive Summary</h3>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Executive Summary</h2>
           <p className="text-slate-600 leading-relaxed text-lg">{summary}</p>
         </div>
       </div>
